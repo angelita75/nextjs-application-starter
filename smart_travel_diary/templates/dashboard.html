@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Dashboard</h2>
+<p>Welcome, {{ current_user.username }}!</p>
+
+<div class="list-group">
+    <a href="{{ url_for('submit_diary') }}" class="list-group-item list-group-item-action">Submit Travel Diary Entry</a>
+    <a href="{{ url_for('view_diaries') }}" class="list-group-item list-group-item-action">View Public Diary Entries</a>
+    <a href="{{ url_for('report_incident') }}" class="list-group-item list-group-item-action">Report Safety Incident</a>
+    <a href="{{ url_for('view_map') }}" class="list-group-item list-group-item-action">View Incidents on Map</a>
+    <a href="{{ url_for('profile') }}" class="list-group-item list-group-item-action">Update Profile and Preferences</a>
+</div>
+{% endblock %}
