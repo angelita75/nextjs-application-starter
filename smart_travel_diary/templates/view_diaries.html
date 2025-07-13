@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Public Travel Diary Entries</h2>
+
+<form method="GET" action="{{ url_for('view_diaries') }}" class="mb-4">
+    <div class="input-group">
+        <input type="text" class="form-control" name="q" placeholder="Search diary entries" value="{{ request.args.get('q', '') }}">
+        <button class="btn btn-primary" type="submit">Search</button>
+    </div>
+</form>
+
+{% for entry in diary_entries %}
+<div class="card mb-3">
+    <div class="card-body">
+        <h5 class="card-title">{{ entry.title }}</h5>
+        <h6 class="card-subtitle mb-2 text-muted">By {{ entry.author.username }} on {{ entry.timestamp.strftime('%Y-%m-%d') }}</h6>
+        <p class="card-text">{{ entry.description }}</p>
+        {% if entry.photo_filename %}
+        <img src="{{ url_for('static', filename='uploads/' ~ entry.photo_filename) }}" alt="Photo" class="img-fluid mb-2" />
+        {% endif %}
+        <hr />
+        <h6>Comments</h6>
+        {% for comment in entry.comments %}
+        <p><strong>{{ comment.author.username }}:</strong> {{ comment.content }}</p>
+        {% endfor %}
+        {% if current_user.is_authenticated %}
+        <form method="POST" action="{{ url_for('add_comment', diary_id=entry.id) }}">
+            <div class="input-group mb-3">
+                <input type="text" class="form-control" name="content" placeholder="Add a comment" required />
+                <button class="btn btn-outline-secondary" type="submit">Comment</button>
+            </div>
+        </form>
+        {% endif %}
+    </div>
+</div>
+{% else %}
+<p>No diary entries found.</p>
+{% endfor %}
+{% endblock %}
