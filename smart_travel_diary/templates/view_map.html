@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Incidents Map</h2>
+
+<div class="mb-3">
+    <input type="text" id="locationSearch" class="form-control" placeholder="Search location" />
+    <button id="searchBtn" class="btn btn-primary mt-2">Search</button>
+</div>
+
+<div id="map" style="height: 500px;"></div>
+
+<script>
+    var map = L.map('map').setView([20, 0], 2);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 18,
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    var incidents = {{ incidents|tojson|safe }};
+
+    function getMarkerColor(category) {
+        switch(category) {
+            case 'crime': return 'red';
+            case 'flood': return 'blue';
+            case 'health': return 'green';
+            default: return 'gray';
+        }
+    }
+
+    incidents.forEach(function(incident) {
+        if (incident.latitude && incident.longitude) {
+            var marker = L.circleMarker([incident.latitude, incident.longitude], {
+                color: getMarkerColor(incident.risk_category),
+                radius: 8
+            }).addTo(map);
+            var popupContent = "<b>" + incident.incident_type + "</b><br>" +
+                incident.location + "<br>" +
+                (incident.description ? incident.description + "<br>" : "") +
+                (incident.photo_filename ? "<img src='/static/uploads/" + incident.photo_filename + "' alt='Photo' style='max-width:100px;' />" : "") +
+                "<br>Status: " + incident.status;
+            marker.bindPopup(popupContent);
+        }
+    });
+
+    document.getElementById('searchBtn').addEventListener('click', function() {
+        var location = document.getElementById('locationSearch').value;
+        if (!location) return;
+        fetch('https://nominatim.openstreetmap.org/search?format=json&q=' + encodeURIComponent(location))
+            .then(response => response.json())
+            .then(data => {
+                if (data && data.length > 0) {
+                    var lat = data[0].lat;
+                    var lon = data[0].lon;
+                    map.setView([lat, lon], 13);
+                    L.marker([lat, lon]).addTo(map).bindPopup(location).openPopup();
+                } else {
+                    alert('Location not found');
+                }
+            });
+    });
+</script>
+{% endblock %}
